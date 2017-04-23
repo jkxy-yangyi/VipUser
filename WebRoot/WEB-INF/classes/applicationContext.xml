@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans
+	xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd http://www.springframework.org/schema/tx 
+	http://www.springframework.org/schema/tx/spring-tx.xsd
+	http://www.springframework.org/schema/aop 
+	http://www.springframework.org/schema/aop/spring-aop-3.1.xsd"
+	xmlns:tx="http://www.springframework.org/schema/tx">
+
+    <bean id="datasource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">    
+        <property name="driverClassName" value="com.mysql.jdbc.Driver" />    
+        <property name="url" value="jdbc:mysql://localhost:3306/db_vip?useUnicode=true&amp;characterEncoding=utf-8"></property>    
+        <property name="username" value="root" />  
+         <property name="password" value="mysql" />        
+        <!-- 数据库连接池保持的最小连接数 -->    
+        <property name="minIdle" value="5" /> <property name="maxIdle" value="30" /> 
+	 	<property name="testOnBorrow" value="true" />    
+        <!-- 返回连接时是否进行有效性验证 -->    
+        <property name="testOnReturn" value="true" />    
+        <!-- 连接空闲时是否进行有效性验证 -->    
+        <property name="testWhileIdle" value="true" /> 
+    </bean>    
+	
+	<bean id="sessionFactory"
+		class="org.springframework.orm.hibernate4.LocalSessionFactoryBean">
+		   <property name="dataSource" ref="datasource"/>  
+    	<property name="hibernateProperties">
+				<props>
+				<prop key="hibernate.dialect">org.hibernate.dialect.MySQLDialect</prop>
+				<prop key="hibernate.show_sql">true</prop>
+				</props>
+				</property>		 
+		<property name="mappingResources">  
+		    <list>  
+		     	<value>com/jkxy/web/model/Commodity.hbm.xml</value>  
+		     	<value>com/jkxy/web/model/Consume.hbm.xml</value>  
+		     	<value>com/jkxy/web/model/User.hbm.xml</value>  
+		     	<value>com/jkxy/web/model/Vip.hbm.xml</value>  
+		    </list>  
+   		</property>
+	</bean>
+
+	<!-- 用户相关的bean -->
+	<bean id="UserDao" class="com.jkxy.web.dao.impl.UserDaoImpl">
+		<property name="sessionFactory" ref="sessionFactory"></property>
+	</bean>
+	<bean id="UserService" class="com.jkxy.web.service.UserService">
+		<property name="userDao" ref="UserDao"></property>
+	</bean>
+	<bean id="LoginAction" class="com.jkxy.web.action.LoginAction">
+		<property name="UserService" ref="UserService"></property>
+	</bean>
+
+
+	
+	<!-- 会员相关bean -->
+	 <bean id="vipDao" class="com.jkxy.web.dao.impl.VipDaoImpl">
+		<property name="sessionFactory" ref="sessionFactory"></property>
+	</bean>
+	<bean id="vipService" class="com.jkxy.web.service.impl.VipServiceImpl">
+		<property name="vipDao" ref="vipDao"></property>
+	</bean>
+	<bean id="consumeDao" class="com.jkxy.web.dao.impl.ConsumeDaoImpl">
+		<property name="sessionFactory" ref="sessionFactory"></property>
+	</bean>
+	<bean id="consumeService" class="com.jkxy.web.service.impl.ConsumeServiceImpl">
+		<property name="consumeDao" ref="consumeDao"></property>
+	</bean>
+	<bean id="vipAction" class="com.jkxy.web.action.VipAction">
+		<property name="vipService" ref="vipService"></property>
+		<property name="consumeService" ref="consumeService"></property>
+	</bean>
+	
+	
+	
+	
+	<!-- 商品的相关bean -->
+	 <bean id="commodityDao" class="com.jkxy.web.dao.impl.CommodityDaoImpl">
+		<property name="sessionFactory" ref="sessionFactory"></property>
+	</bean>
+	<bean id="commodityService" class="com.jkxy.web.service.impl.CommodityServiceImpl">
+		<property name="commodityDao" ref="commodityDao"></property>
+	</bean>
+	<bean id="commodityAction" class="com.jkxy.web.action.CommodityAction">
+		<property name="commodityService" ref="commodityService"></property>
+	</bean>
+	
+	
+	
+	<aop:config proxy-target-class="true">
+		<aop:pointcut expression="execution(* com.jkxy.web.dao.impl.*.*(..))" id="cut"/>
+		<aop:advisor advice-ref="defaultTransactionAdvice" pointcut-ref="cut"/>		
+	</aop:config>
+	
+	<bean id="transactionManager"
+		class="org.springframework.orm.hibernate4.HibernateTransactionManager">
+		<property name="sessionFactory" ref="sessionFactory" />
+		<property name="dataSource" ref="datasource"></property>  
+	</bean>
+	<tx:advice transaction-manager="transactionManager" id="defaultTransactionAdvice">
+	 		<tx:attributes>  
+	 			 <tx:method name="add*" read-only="false"/> 
+               <tx:method name="*"/>  
+          </tx:attributes> 
+	</tx:advice>
+	<tx:annotation-driven transaction-manager="transactionManager" /></beans>

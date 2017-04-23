@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE struts PUBLIC "-//Apache Software Foundation//DTD Struts Configuration 2.1//EN" "http://struts.apache.org/dtds/struts-2.1.dtd">
+<struts>
+
+	 <package name="login" namespace="/login" extends="struts-default">
+		 <interceptors>
+	            <!-- 定义权限控制拦截器 -->
+	            <interceptor name="myInterceptor"
+	                class="com.jkxy.web.interceptor.LoginCheck" />
+	            <!-- 定义一个包含权限控制的拦截器栈 -->
+	            <interceptor-stack name="mydefault">
+	                <interceptor-ref name="defaultStack" />
+	                <interceptor-ref name="myInterceptor" />
+	            </interceptor-stack>
+	        </interceptors>
+	        
+	    <default-interceptor-ref name="mydefault" />
+        <!-- 定义全局处理结果 -->
+        <global-results>
+            <!-- 逻辑名为login的结果，映射到/login.jsp页面 -->
+            <result name="login">/login.jsp</result>
+        </global-results>
+ 		<action name="LoginAction" class="LoginAction" method="checkUser">
+            <result name="xitong">/index.jsp</result>
+            <result name="putong">/index.jsp</result>
+            <result name="error">/login.jsp</result>
+            <interceptor-ref name="defaultStack" />
+        </action>
+       <action name="QuitAction" class="LoginAction" method="quit">
+            <result name="success">/login.jsp</result>
+        </action>
+      </package>
+      
+      <!-- 商品相关 -->
+       <package name="Commodity" namespace="/Commodity" extends="login">
+         <action name="CommodityAction" class="com.jkxy.web.action.CommodityAction" method="addCommodity">
+            <result name="success" type="redirectAction">getAllCommodityAction</result>
+            <result name="false">/entryerror.jsp</result>
+        </action>
+        
+        <action name="getAllCommodityAction" class="com.jkxy.web.action.CommodityAction" method="getAllCommodity">
+            <result name="yes">/allCommodity.jsp</result>
+        </action>
+    </package>
+    
+     <!-- 会员相关 -->
+      <package name="vip" namespace="/Vip" extends="login">
+        
+         <action name="getAllVipAction" class="com.jkxy.web.action.VipAction" method="getAllVip">
+            <result name="getAllSuccess">/vipall.jsp</result>
+        </action>
+        
+        <action name="updateVipAction" class="com.jkxy.web.action.VipAction" method="updateVip">
+            <result name="updateSuccess" type="redirectAction">getAllVipAction</result>
+        </action>
+        
+         <action name="deleteVipAction" class="com.jkxy.web.action.VipAction" method="delectVip">
+            <result name="delSuccess" type="redirectAction">getAllVipAction</result>
+        </action>
+        
+        <action name="getConsumeAction" class="com.jkxy.web.action.VipAction" method="getConsume">
+            <result name="getConsume" >/viprecording.jsp</result>
+        </action>
+        
+        <action name="getVipByNameAction" class="com.jkxy.web.action.VipAction" method="getVipByName">
+            <result name="success" >/vipinfo.jsp</result>
+            <result name="false" >/findvip.jsp</result>
+        </action>
+    </package>
+    
+    
+     <package name="consume" namespace="/consume" extends="login">
+        <action name="allConsumeAction" class="com.jkxy.web.action.ConsumeAction" method="getConsumeAll">
+            <result name="allRecord">/allConsume.jsp</result>
+        </action>
+    </package>
+</struts>    
